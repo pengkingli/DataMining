@@ -100,6 +100,7 @@ def InfoGain(DatSet,Label,k):   #k为第k个特征  ID3用信息增益作为标�
         #print key,labelCount[key],labelCount[key]/(m*1.0)*InfoEntCalc(subDataSet)
     return ShannonEntfore - subShannonEnt
 
+#连续属性的最大增益计算
 def InfoGainContous(DatSet,Label,k):
     DatSetk = DatSet[:,k]
     nk = len(DatSetk)
@@ -128,17 +129,13 @@ def InfoGainContous(DatSet,Label,k):
             else: Label1.append(Label[datindex])
         sumEnt = len(Label0)/(len(Label)*1.0)*InfoEntCalc(Label0) + len(Label1)/(len(Label)*1.0)*InfoEntCalc(Label1)
         infoEnt = InfoEntCalc(Label) - sumEnt
-        #print Label0,len(Label0)/(len(Label)*1.0)*InfoEntCalc(Label0)
-        #print Label1,len(Label1)/(len(Label*1.0))*InfoEntCalc(Label1)
-        #print infoEnt,maxinfoEnt
-        #print InfoEntCalc(Label),sumEnt
         if infoEnt > maxinfoEnt:
             maxinfoEnt = infoEnt
             bestPoint = selectPoint[index] #得到最佳划分点
             bestLabel = Label0
     return maxinfoEnt,bestPoint
     
-
+#计算最大增益
 def MaxGain(DatSet,Label,Table):
     m,n = np.shape(DatSet)  #多了一些重复计算
     Gain = 0.0
@@ -151,21 +148,14 @@ def MaxGain(DatSet,Label,Table):
         try: 
             float(tab)
         except:
-            #print 'DatSet,Num',(DatSet,featureNum)
             Gain = InfoGain(DatSet,Label,featureNum)
             Point = -1
         else: 
-            #print featureNum,Label,DatSet
-            #print  "featureNum: ",featureNum
             Gain,Point = InfoGainContous(DatSet,Label,featureNum)
-        #if featureNum == 6 or featureNum == 7:
-        #    Gain,bestPoint = InfoGainContous(DatSet,Label,featureNum)
-        #else: Gain = InfoGain(DatSet,Label,featureNum)
         if Gain > maxGain:
             bestFeature = featureNum
             maxGain = Gain
             bestPoint = Point
-        #print featureNum,Gain
     return bestFeature,bestPoint
 
 def majorCnt(DatSet):   #当前数据集返回类别数目最多的特征
@@ -191,23 +181,14 @@ def TreeGenerate(Dat,DatOri,Table):  #输入位np array格式
     #属性集已经遍历完成，但是数据中仍然有多个分类类别时
     if n == 1:  #n=1表示只剩下了类别
         return majorCnt(Label)
-    #if len(DatSet) == 0:
-    #print DatSet,Label,Table
     bestFeature,bestPoint = MaxGain(DatSet,Label,Table) #bestFeature对应特征的编号
-    #feature = Table[bestFeature] #根据编号选出特征字符串
-    #print bestFeature,bestPoint
     bestFeatureTable = Table[bestFeature]
-    #print bestFeatureTable
-    #print bestFeatureTable
-    #print Table
     del(Table[bestFeature])
     #print Table
     Tree = {bestFeatureTable:{}}
     try:
         int(bestFeatureTable)#根据选出的属性是否可以转化为int型确定是否为密度和含糖量
     except:  
-    #print Table
-    #print bestFeatureTable,set(DatOri[:,bestFeature])
         for value in set(DatOri[:,bestFeature]):
             #print (bestFeatureTable,value)
             subDatSetR = Dat[Dat[:,bestFeature] == value] #选出属性bestFeature，值为value的行
@@ -221,7 +202,6 @@ def TreeGenerate(Dat,DatOri,Table):  #输入位np array格式
                 Tree[bestFeatureTable][value] = majorCnt(Label)#return majorCnt(Label)
             else:
                 Tree[bestFeatureTable][value] = TreeGenerate(subDatSet,subDatOri,subTabel)  #Tree[bestFeature][value]两层深度的树
-
     else:
         for value in [-1,1]:
             if value == -1:

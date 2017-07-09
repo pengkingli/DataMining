@@ -1,23 +1,20 @@
 ﻿
 '''#-*- coding utf-8 -*-'''
+#决策树算法实现，使用的数据集为西瓜数据集2.0，包含了后剪枝算法
 # coding=gbk
 #以utf-8-BOM进行编码
 import numpy as np
 import operator
 from math import log
 
+#导入数据
 def loadData(filename):
     DataSet = []
     #考虑不在数据集中“是/否”之后加，如何正常导入数据集，避免\n和之后的编号在一起
-    DataSet = open(filename).read().split(',') #读入为一个字符串并以，进行切分; 但是没能将是和之后的数字区分开
-    '''
-    for line in fr.readlines():
-        curline = line.strip().split('\t')
-        DataSet.append(line)
-        return DataSet
-    '''
+    DataSet = open(filename).read().split(',') #读入为一个字符串并以','进行切分; 但是没能将行末和下一行的开头区分开
     return DataSet
-        
+
+#由于得到的为变卡的字符串，通过该函数将字符串转化为数字，便于处理    
 def ChineseToNum(DatSet):
     NumDat = []
     for dat in DatSet:
@@ -62,9 +59,10 @@ def ChineseToNum(DatSet):
         else:
             #print unicode(dat,"gbk")
             pass
-    print len(NumDat)
+    #print len(NumDat)
     return NumDat
-    
+
+#计算香农信息熵
 def InfoEntCalc(Label):
     LabelNum = len(Label)
     labelCount = {}
@@ -78,8 +76,8 @@ def InfoEntCalc(Label):
         ShannonEnt -= EntPk*log(EntPk,2)
     return ShannonEnt
 
-    
-def InfoGain(DatSet,Label,k):   #k为第k个特征  ID3用信息增益作为标准
+#采用ID3算法，即用信息增益作为选择划分属性的标准
+def InfoGain(DatSet,Label,k):   #k为第k个特征
     m,n = np.shape(DatSet)
     ShannonEntfore = InfoEntCalc(Label)
     DatSet = DatSet[:,k]
@@ -94,9 +92,10 @@ def InfoGain(DatSet,Label,k):   #k为第k个特征  ID3用信息增益作为标�
         subShannonEnt += labelCount[key]/(m*1.0)*InfoEntCalc(subDataSet)
         #print key,labelCount[key],labelCount[key]/(m*1.0)*InfoEntCalc(subDataSet)
     return ShannonEntfore - subShannonEnt
-        
+
+#得到最大增益的属性
 def MaxGain(DatSet,Label):
-    m,n = np.shape(DatSet)  #多了一些重复计算
+    m,n = np.shape(DatSet)  #和其他函数综合起来看，有一些重复计算
     Gain = 0.0
     maxGain = -1
     bestFeature = -1
@@ -107,7 +106,7 @@ def MaxGain(DatSet,Label):
             maxGain = Gain
     return bestFeature
 
-def majorCnt(DatSet):   #当前数据集返回类别数目最多的特征
+def majorCnt(DatSet):   #当前数据集返回类别数目最多的特征，借鉴了机器学习实战
     Label = DatSet[:]
     LabelCnt = {}
     for value in Label:
@@ -118,7 +117,7 @@ def majorCnt(DatSet):   #当前数据集返回类别数目最多的特征
         return sortedLabelCnt[0][0]
         
 
-#完成基本的决策树构建
+#基本的决策树构建
 def TreeGenerate(Dat,DatOri,Table):  #输入位np array格式
     DatSet = Dat[:,:-1]  #取出所有的数据集
     Label = Dat[:,-1]   #取出样本对应得类别集
@@ -127,30 +126,30 @@ def TreeGenerate(Dat,DatOri,Table):  #输入位np array格式
     #if( (m == sum(Label)/Label[0]) or sum(Label) ==0) #
     if list(Label).count(Label[0]) == m:
         return Label[0]
-    #属性集已经遍历完成，但是数据中仍然有多个分类类别时
-    if n == 1:  #n=1表示只剩下了类别
+    #属性集已经遍历完成，但是数据中仍然有不同的分类，即最后一个属性中既有好瓜也有坏瓜
+    if n == 1:  #n=1表示只剩下了1个类别，
         return majorCnt(Label)
     #if len(DatSet) == 0:
-    bestFeature = MaxGain(DatSet,Label) #bestFeature对应特征的编号
-    #feature = Table[bestFeature] #根据编号选出特征字符串
+    bestFeature = MaxGain(DatSet,Label) #bestFeature：最大增益特征对应特征的编号
+    #feature = Table[bestFeature] 
     #print bestFeature
-    bestFeatureTable = Table[bestFeature]
+    bestFeatureTable = Table[bestFeature]#根据编号选出特征
     #print bestFeatureTable
     #print Table
     Tree = {bestFeatureTable:{}}
-    del(Table[bestFeature])
+    del(Table[bestFeature]) #用过的特征要删除
     #print Table
     #print bestFeatureTable,set(DatOri[:,bestFeature])
-    for value in set(DatOri[:,bestFeature]):
+    for value in set(DatOri[:,bestFeature]): #对属性的每个结果
         #print (bestFeatureTable,value)
         subDatSetR = Dat[Dat[:,bestFeature] == value] #选出属性bestFeature，值为value的行
-        subDatSet = np.concatenate((subDatSetR[:,:bestFeature],subDatSetR[:,bestFeature+1:]),axis=1) #数据集将bestFeature属性去掉
-        subDatOri = np.concatenate((DatOri[:,:bestFeature],DatOri[:,bestFeature+1:]),axis=1) #数据集将bestFeature属性去掉
+        subDatSet = np.concatenate((subDatSetR[:,:bestFeature],subDatSetR[:,bestFeature+1:]),axis=1) #数据集将bestFeature特征去掉，并选出特征值为value的数据集
+        subDatOri = np.concatenate((DatOri[:,:bestFeature],DatOri[:,bestFeature+1:]),axis=1) #subDatOri：数据集之将bestFeature属性去掉。不区分特征的取值
         subTabel = Table[:]
         subm,subn = np.shape(subDatSet)
         #print subm
         #print "Label:", Label
-        if(subm == 0):  #当子集的数据集为空时，说明没有这样的特征样本，根据其父集中样本最多的类
+        if(subm == 0):  #当子集的数据集为空时，说明没有这样的特征样本，根据其父集中样本最多的类作为其类别
             Tree[bestFeatureTable][value] = majorCnt(Label)#return majorCnt(Label)
         else:
             Tree[bestFeatureTable][value] = TreeGenerate(subDatSet,subDatOri,subTabel)  #Tree[bestFeature][value]两层深度的树
@@ -172,19 +171,16 @@ def Classify(inputTree,featureTable,testDatSet):
     return classLabel
 
     
-#决策树剪枝
+#决策树剪枝，采用后剪枝的方法，但是该函数支队最后一层进行剪枝，中间层不剪枝
+#主要思路是：遍历已经建成的树的所有最后一层树，对其进行后剪枝处理，处理后得到一颗新的树返回，而不是在原树上进行操作
 def PostPurn(Tree,featureTable,trainData,testData):
     firstkey = Tree.keys()[0]
     subTree = Tree[firstkey]
     Tree3 = {firstkey:{}}
-    #firstselectfeature = featureTable.index(firstkey) #根据属性得到其对应的索引号
-    #sub1testData = testData[:,firstselectfeature]
-    #subt1rainData = trainData[:,firstselectfeature]
-    #print sub1testData
-    #print subt1rainData
+    #firstselectfeature = featureTable.index(firstkey) #根据特征得到其对应的索引号
     for key in subTree.keys():
         #print "key= ",(firstkey,key)
-        selectfeature = featureTable.index(firstkey) #根据属性得到其对应的索引号
+        selectfeature = featureTable.index(firstkey) #根据特征得到其对应的索引号
         subtestData = testData[testData[:,selectfeature] == key]
         subtrainData = trainData[trainData[:,selectfeature] == key]
         subtrainLabel = subtrainData[:,-1]
@@ -193,32 +189,21 @@ def PostPurn(Tree,featureTable,trainData,testData):
         if type(subTree[key]).__name__ == 'int':
             Tree3[firstkey][key] = subTree[key]
         else:
-            if isendTree(subTree[key]):  # and isTree(sub2Tree):
+            if isendTree(subTree[key]):  #如果是最后一层树，即所有的节点均为值而不是字典
                 Tree2 = subTree.copy()
                 #print 'subtrainLabel',subtrainLabel
                 Tree2[key] = majorCnt(subtrainLabel) #结果为1个值
                 #print Tree2[key]
                 Accurateafter = AccurateCalcnotTree(Tree2[key],featureTable,subtestData)
                 Accuratebefore = AccurateCalc(Tree,featureTable,subtestData)
-                #print Tree2[key]
-                #print subTree
-                #print subtestData
-                #print Accuratebefore,Accurateafter
-                if Accurateafter > Accuratebefore:
-                    #subTree[key] = Tree2[key]
-                    #return Tree2[key]
+                if Accurateafter > Accuratebefore: #判断剪枝前后的验证集精度
                     Tree3[firstkey][key] = Tree2[key]
                 else: 
                     Tree3[firstkey][key] = subTree[key]
-                    #return subTree[key]
-                    #subTree[key] = Tree
-                    #return subTree[key]
-                #return Tree #subTree[key]
             else: Tree3[firstkey][key] = PostPurn(sub2Tree,featureTable,subtrainData,subtestData)
-        #print "Tree3: ",Tree3
     return Tree3
 
-def AccurateCalc(Tree,featureTable,testData): #testData为np.array格式，树计算
+def AccurateCalc(Tree,featureTable,testData): #testData为np.array格式，对数进行数据集精度计算
     testDat = testData[:,:-1]
     testLable = testData[:,-1]
     m,n = np.shape(testDat)
@@ -231,7 +216,7 @@ def AccurateCalc(Tree,featureTable,testData): #testData为np.array格式，树�
             #print rightcounter
     return rightcounter/(m*1.0)
 
-def AccurateCalcnotTree(Tree,featureTable,testData): #testData为np.array格式,叶节点计算
+def AccurateCalcnotTree(Tree,featureTable,testData): #所有节点均为根节点的树，数据集精度计算
     testDat = testData[:,:-1]
     testLable = testData[:,-1]
     m,n = np.shape(testDat)
@@ -242,10 +227,10 @@ def AccurateCalcnotTree(Tree,featureTable,testData): #testData为np.array格式,
             #print rightcounter
     return rightcounter/(m*1.0)
     
-def isTree(obj):
+def isTree(obj): #判断是否为一棵树
     return (type(obj).__name__ == 'dict')
     
-def isendTree(Tree): #判断是否是节点树,Tree为一个字典
+def isendTree(Tree): #判断是否是所有节点均为根节点的树,Tree为一个字典
     #if type(Tree).__name__ == 'dict':
     #    return True
     subTree = Tree.values()[0]
