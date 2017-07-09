@@ -147,7 +147,7 @@ def MaxGain(DatSet,Label,Table):
     bestPoint = -1
     for tab in Table:
         featureNum = list(Table).index(tab)
-        print "featureNum: ",featureNum
+        #print "featureNum: ",featureNum
         try: 
             float(tab)
         except:
@@ -192,16 +192,16 @@ def TreeGenerate(Dat,DatOri,Table):  #输入位np array格式
     if n == 1:  #n=1表示只剩下了类别
         return majorCnt(Label)
     #if len(DatSet) == 0:
-    print DatSet,Label,Table
+    #print DatSet,Label,Table
     bestFeature,bestPoint = MaxGain(DatSet,Label,Table) #bestFeature对应特征的编号
     #feature = Table[bestFeature] #根据编号选出特征字符串
-    print bestFeature,bestPoint
+    #print bestFeature,bestPoint
     bestFeatureTable = Table[bestFeature]
-    print bestFeatureTable
+    #print bestFeatureTable
     #print bestFeatureTable
     #print Table
     del(Table[bestFeature])
-    print Table
+    #print Table
     Tree = {bestFeatureTable:{}}
     try:
         int(bestFeatureTable)#根据选出的属性是否可以转化为int型确定是否为密度和含糖量
@@ -228,16 +228,24 @@ def TreeGenerate(Dat,DatOri,Table):  #输入位np array格式
                 subDatSetR = Dat[Dat[:,bestFeature] < bestPoint] #选出属性bestFeature，值为value的行
                 subDatSet = np.concatenate((subDatSetR[:,:bestFeature],subDatSetR[:,bestFeature+1:]),axis=1) #数据集将bestFeature属性去掉
                 subDatOri = np.concatenate((DatOri[:,:bestFeature],DatOri[:,bestFeature+1:]),axis=1) #数据集将bestFeature属性去掉
+                subTabel = Table[:]
+                subm,subn = np.shape(subDatSet)
+                strval = '<' + str(bestPoint)
+                if(subm == 0):  #当子集的数据集为空时，说明没有这样的特征样本，根据其父集中样本最多的类
+                	Tree[bestFeatureTable][strval] = majorCnt(Label)#return majorCnt(Label)
+                else:
+                    Tree[bestFeatureTable][strval] = TreeGenerate(subDatSet,subDatOri,subTabel)  #Tree[bestFeature][value]两层深度的树
             if value == 1:
-                subDatSetR = Dat[Dat[:,bestFeature] > bestPoint] #选出属性bestFeature，值为value的行
+                subDatSetR = Dat[Dat[:,bestFeature] >= bestPoint] #选出属性bestFeature，值为value的行
                 subDatSet = np.concatenate((subDatSetR[:,:bestFeature],subDatSetR[:,bestFeature+1:]),axis=1) #数据集将bestFeature属性去掉
                 subDatOri = np.concatenate((DatOri[:,:bestFeature],DatOri[:,bestFeature+1:]),axis=1) #数据集将bestFeature属性去掉
-            subTabel = Table[:]
-            subm,subn = np.shape(subDatSet)
-            if(subm == 0):  #当子集的数据集为空时，说明没有这样的特征样本，根据其父集中样本最多的类
-            	Tree[bestFeatureTable][value] = majorCnt(Label)#return majorCnt(Label)
-            else:
-                Tree[bestFeatureTable][value] = TreeGenerate(subDatSet,subDatOri,subTabel)  #Tree[bestFeature][value]两层深度的树
+                subTabel = Table[:]
+                subm,subn = np.shape(subDatSet)
+                strval = '>=' + str(bestPoint)
+                if(subm == 0):  #当子集的数据集为空时，说明没有这样的特征样本，根据其父集中样本最多的类
+                	Tree[bestFeatureTable][strval] = majorCnt(Label)#return majorCnt(Label)
+                else:
+                    Tree[bestFeatureTable][strval] = TreeGenerate(subDatSet,subDatOri,subTabel)  #Tree[bestFeature][value]两层深度的树
                
     return Tree
     
