@@ -19,3 +19,4 @@ acc = LogReg.accuratecalc(dat,w)
 filename = r'D:\\Program Files\\Python2.7\\source\\DataMining\\LogisticRegression\\horseColicTest.txt'
 datatest = LogReg.LoadData(filename)
 datatest = np.array(datatest) #299行，22列的数据
+acc = LogReg.accuratecalc(datatest,w)
