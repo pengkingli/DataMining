@@ -64,6 +64,7 @@ def figplot(dic):
     ax = fig.add_subplot(1,1,1)
     col = ['r','b','g']
     for key in dic.keys():
-        ax.plot(np.array(dic[key]),linestyle='o',color=col[key])
+        #ax.plot(np.array(dic[key])[:,0],np.array(dic[key])[:,1],linestyle='o--',color=col[key])
+        ax.scatter(np.array(dic[key])[:,0],np.array(dic[key])[:,1],color=col[key])
     fig.show()
             
