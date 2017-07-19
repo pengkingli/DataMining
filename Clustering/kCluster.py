@@ -59,6 +59,43 @@ def lengthcalc(inX,inY): #inX,inY  要求同为行向量
     subdu.shape = (1,subdu.shape[0])#一维数组转置必须指定大小
     return pow(np.dot(subdu,subdu.T),0.5)
     
+def DBIcalc(cul,dic):
+    dicset = np.array(dic)
+    k = len(dic)
+    kDBI = 0.0
+    for i in range(k):
+        maxsim = 0
+        kj = range(k)
+        del kj[i]
+        for j in kj:
+            sim = similar(dic[i],dic[j],cul[i],cul[j])[0][0]
+            #print sim
+            if sim > maxsim:
+                maxsim = sim
+        #print 'maxsim',maxsim
+        kDBI += maxsim
+        #print 'kDBI',kDBI
+    return 1.0/k*kDBI
+    
+def avgC(data): #输入为一个类的数据集
+    dataset = np.array(data)
+    k = dataset.shape[0]
+    sumlength = 0.0
+    for i in range(k):
+        kj = range(k)
+        del kj[i]
+        for j in kj:
+            sumlength += lengthcalc(dataset[i],dataset[j])
+    return (2.0/(k*(k-1)))*sumlength
+
+def similar(dataX,dataY,inX,inY): #输入为两个分类中的数据集,inX,inY为两个类的中心
+    return float(avgC(dataX)+avgC(dataY))/lengthcalc(inX,inY)
+
+'''
+def bestCluster(cul,dic):
+    kCluster.DBIcalc(cul,dic,k)
+'''
+    
 def figplot(dic):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)

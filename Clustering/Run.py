@@ -15,4 +15,6 @@ dataset = kCluster.loadData(filename)
 dataset = np.array(dataset) 
 
 cul,dic = kCluster.kMeans(dataset,3)
+kCluster.DBIcalc(cul,dic)
+
 kCluster.figplot(dic)
