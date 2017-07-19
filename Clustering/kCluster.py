@@ -62,7 +62,7 @@ def lengthcalc(inX,inY): #inX,inY  要求同为行向量
 def figplot(dic):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    col = ['r','b','g']
+    col = ['r','b','g','k','y','m']
     for key in dic.keys():
         #ax.plot(np.array(dic[key])[:,0],np.array(dic[key])[:,1],linestyle='o--',color=col[key])
         ax.scatter(np.array(dic[key])[:,0],np.array(dic[key])[:,1],color=col[key])
