@@ -25,7 +25,7 @@ def kMeans(data,k):
     dicbak = {}
     for time in xrange(500):
         dic = {}
-        print cluster
+        #print cluster
         for data in dataset:
             #print "666"
             minindex = minlength(data,cluster)
@@ -57,7 +57,7 @@ def minlength(inX,cluster):
 def lengthcalc(inX,inY): #inX,inY  要求同为行向量
     subdu = inX - inY
     subdu.shape = (1,subdu.shape[0])#一维数组转置必须指定大小
-    return pow(np.dot(subdu,subdu.T),0.5)
+    return pow(np.dot(subdu,subdu.T),0.5)[0][0] #从类似于array([[ 0.09625487]])中取出值
     
 def DBIcalc(cul,dic):
     dicset = np.array(dic)
@@ -68,7 +68,7 @@ def DBIcalc(cul,dic):
         kj = range(k)
         del kj[i]
         for j in kj:
-            sim = similar(dic[i],dic[j],cul[i],cul[j])[0][0]
+            sim = similar(dic[i],dic[j],cul[i],cul[j])
             #print sim
             if sim > maxsim:
                 maxsim = sim
@@ -91,10 +91,16 @@ def avgC(data): #输入为一个类的数据集
 def similar(dataX,dataY,inX,inY): #输入为两个分类中的数据集,inX,inY为两个类的中心
     return float(avgC(dataX)+avgC(dataY))/lengthcalc(inX,inY)
 
-'''
-def bestCluster(cul,dic):
-    kCluster.DBIcalc(cul,dic,k)
-'''
+
+def bestCluster(data):
+    bestdbi = np.inf
+    for k in range(2,5):
+        cul,dic = kMeans(data,k)
+        currdbi = DBIcalc(cul,dic)
+        if currdbi < bestdbi:
+            bestdbi = currdbi
+    return k
+
     
 def figplot(dic):
     fig = plt.figure()
