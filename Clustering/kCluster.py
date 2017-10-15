@@ -48,14 +48,14 @@ def minlength(inX,cluster):
     minindex = np.inf
     minlen = np.inf
     for i in xrange(clm):
-        currlen = lengthcalc(inX,cluster[i])
+        currlen = lengthcalc(inX,cluster[i]) #进一步完善，影子啊计算之前做数据处理，完成归一化
         if currlen < minlen:
             minindex = i
             minlen = currlen
     return minindex
     
 def lengthcalc(inX,inY): #inX,inY  要求同为行向量
-    subdu = inX - inY
+    subdu = inX - inY  
     subdu.shape = (1,subdu.shape[0])#一维数组转置必须指定大小
     return pow(np.dot(subdu,subdu.T),0.5)[0][0] #从类似于array([[ 0.09625487]])中取出值
     
